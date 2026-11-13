@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { Camera } from 'lucide-react';
 import { useServerFn } from '@tanstack/react-start';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -17,7 +18,22 @@ import ReferralQr from './ReferralQr';
 import { currencyForCountry, formatLocal, countryFromLanguage, normalizeCountry } from '@/lib/staging/local-pricing';
 
 const REFERRAL_KEY = 'bt-referral';
-const MAX_PRODUCTS = 3;
+const MAX_PRODUCTS = 5;
+
+// Placeholder text for the notes textarea, translated to the user's language.
+const PLACEHOLDER_TRANSLATIONS: Record<string, string> = {
+  en: 'Optional notes — applied to every photo in the batch',
+  es: 'Notas opcionalmente — aplicadas a cada foto del lote',
+  zh: '可选备注——应用于批次中的每张照片',
+  de: 'Optionale Hinweise — auf jedes Foto der Batch angewendet',
+  fr: 'Notes optionnelles — appliquées à chaque photo du lot',
+  pt: 'Notas optionais — aplicadas a cada foto do lote',
+  ru: 'Дополнительные замечания — применяются к каждому фото в партии',
+  ja: 'オプションのメモ—バッチのすべての画像に適用されます',
+  ko: '선택적 메모—배치의 모든 사진에 적용됩니다',
+  ar: 'ملاحظاتختياريّة—تُطبق على كل صورة في الدفعة',
+  hi: 'वैकल्पिक टिप्पणियाँ — हर तस्वीर में लागू होती हैं',
+};
 
 const SHOWCASE = [
   { src: tradeRealtor, title: 'Realtors', text: 'Empty rooms become move-in-ready listing photos before the open house.' },
@@ -127,7 +143,7 @@ async function shrinkPhoto(file: File): Promise<string> {
   }
 }
 
-async function watermark(src: string): Promise<string> {
+async function watermark(src: string, text: string): Promise<string> {
   const img = await new Promise<HTMLImageElement>((resolve, reject) => {
     const i = new Image();
     i.onload = () => resolve(i);
@@ -147,7 +163,7 @@ async function watermark(src: string): Promise<string> {
   ctx.textBaseline = 'middle';
   ctx.translate(img.width / 2, img.height / 2);
   ctx.rotate(-Math.PI / 6);
-  ctx.fillText('MULTI-LINGUAL.TECH · PREVIEW', 0, 0);
+  ctx.fillText(text, 0, 0);
   ctx.restore();
   return canvas.toDataURL('image/jpeg', 0.9);
 }
@@ -177,9 +193,13 @@ export default function StagingLab() {
   const [buying, setBuying] = useState<StagingPackageId | null>(null);
   const [locale, setLocale] = useState('en');
   const [country, setCountry] = useState<string | null>(null);
+  const [freeGenerationsUsed, setFreeGenerationsUsed] = useState(0);
   const currency = currencyForCountry(country);
+  const placeholderText = PLACEHOLDER_TRANSLATIONS[locale] ?? PLACEHOLDER_TRANSLATIONS['en'];
+  const watermarkText = `Pay ${formatLocal(99, currency)} to download`;
   const fileRef = useRef<HTMLInputElement>(null);
   const productRef = useRef<HTMLInputElement>(null);
+  const viewfinderRef = useRef<HTMLDivElement>(null);
   const [products, setProducts] = useState<string[]>([]);
 
   const loadAccount = useServerFn(getStagingAccount);
@@ -198,25 +218,27 @@ export default function StagingLab() {
   }, [loadAccount]);
 
   useEffect(() => {
-    const ref = normalizeReferralCode(new URLSearchParams(window.location.search).get('ref'));
-    if (ref) localStorage.setItem(REFERRAL_KEY, ref);
-    void supabase.auth.getSession().then(({ data }) => setSession(data.session));
-    const { data } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
-    if (!document.getElementById('google-translate-script')) {
-      (window as unknown as { stagingTranslateInit: () => void }).stagingTranslateInit = () => {
-        const g = (window as unknown as { google: { translate: { TranslateElement: new (o: object, id: string) => void } } }).google;
-        new g.translate.TranslateElement({ pageLanguage: 'en', autoDisplay: false }, 'staging_translate_element');
-      };
-      const sc = document.createElement('script');
-      sc.id = 'google-translate-script';
-      sc.src = 'https://translate.google.com/translate_a/element.js?cb=stagingTranslateInit';
-      document.body.appendChild(sc);
-    }
-    const saved = localStorage.getItem('bt-locale');
-    if (saved) setLocale(saved);
-    setCountry(normalizeCountry(localStorage.getItem('bt-country')) ?? countryFromLanguage(navigator.language));
-    return () => data.subscription.unsubscribe();
-  }, []);
+      const ref = normalizeReferralCode(new URLSearchParams(window.location.search).get('ref'));
+      if (ref) localStorage.setItem(REFERRAL_KEY, ref);
+      void supabase.auth.getSession().then(({ data }) => setSession(data.session));
+      const { data } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
+      if (!document.getElementById('google-translate-script')) {
+        (window as unknown as { stagingTranslateInit: () => void }).stagingTranslateInit = () => {
+          const g = (window as unknown as { google: { translate: { TranslateElement: new (o: object, id: string) => void } } }).google;
+          new g.translate.TranslateElement({ pageLanguage: 'en', autoDisplay: false }, 'staging_translate_element');
+        };
+        const sc = document.createElement('script');
+        sc.id = 'google-translate-script';
+        sc.src = 'https://translate.google.com/translate_a/element.js?cb=stagingTranslateInit';
+        document.body.appendChild(sc);
+      }
+      const saved = localStorage.getItem('bt-locale');
+      if (saved) setLocale(saved);
+      setCountry(normalizeCountry(localStorage.getItem('bt-country')) ?? countryFromLanguage(navigator.language));
+      const savedFree = localStorage.getItem('bt-free-generations');
+      if (savedFree) setFreeGenerationsUsed(parseInt(savedFree, 10));
+      return () => data.subscription.unsubscribe();
+    }, []);
 
   useEffect(() => {
     if (!session) {
@@ -294,8 +316,15 @@ export default function StagingLab() {
       setMessage({ tone: 'error', text: batch.length ? 'All photos in this batch are already generated. Upload more or hit Redo on one.' : 'Upload up to 10 photos first.' });
       return;
     }
-    if (!session) {
+    // Allow up to 10 free generations without sign-in.
+    if (!session && freeGenerationsUsed >= 10) {
       setSignInOpen(true);
+      setMessage({ tone: 'error', text: 'You have used your 10 free photos. Sign in to continue.' });
+      return;
+    }
+    if (session && account && account.freeDownloadsLeft === 0 && account.credits === 0) {
+      setMessage({ tone: 'error', text: 'You have used your 10 free photos. Buy more credits to continue.' });
+      document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' });
       return;
     }
     setBusy(true);
@@ -310,9 +339,16 @@ export default function StagingLab() {
         if (!result.ok) {
           setBatch(prev => prev.map(b => b.id === item.id ? { ...b, status: 'error', error: 'Staging failed' } : b));
         } else {
-          const preview = await watermark(result.image);
-          setBatch(prev => prev.map(b => b.id === item.id ? { ...b, status: 'done', clean: result.image, staged: preview } : b));
-        }
+                  const preview = await watermark(result.image, watermarkText);
+                  setBatch(prev => prev.map(b => b.id === item.id ? { ...b, status: 'done', clean: result.image, staged: preview } : b));
+                  if (!session) {
+                    setFreeGenerationsUsed(prev => {
+                      const next = prev + 1;
+                      localStorage.setItem('bt-free-generations', String(next));
+                      return next;
+                    });
+                  }
+                }
       } catch (error) {
         const msg = error instanceof Error ? error.message : 'Staging failed';
         setBatch(prev => prev.map(b => b.id === item.id ? { ...b, status: 'error', error: msg } : b));
@@ -332,13 +368,13 @@ export default function StagingLab() {
     setBatch(prev => prev.map(b => b.id === id ? { ...b, status: 'working', error: undefined, staged: null, clean: null } : b));
     const wf = WORKFLOWS[trade].find(w => w.id === workflowId) ?? WORKFLOWS[trade][0]!;
     try {
-      const result = await runStaging({ data: { image: item.original, roomType: wf.roomType, style: wf.style, notes, products } });
-      if (!result.ok) {
-        setBatch(prev => prev.map(b => b.id === id ? { ...b, status: 'error', error: 'Staging failed' } : b));
-      } else {
-        const preview = await watermark(result.image);
-        setBatch(prev => prev.map(b => b.id === id ? { ...b, status: 'done', clean: result.image, staged: preview } : b));
-      }
+          const result = await runStaging({ data: { image: item.original, roomType: wf.roomType, style: wf.style, notes, products } });
+          if (!result.ok) {
+            setBatch(prev => prev.map(b => b.id === id ? { ...b, status: 'error', error: 'Staging failed' } : b));
+          } else {
+            const preview = await watermark(result.image, watermarkText);
+            setBatch(prev => prev.map(b => b.id === id ? { ...b, status: 'done', clean: result.image, staged: preview } : b));
+          }
     } catch (error) {
       const msg = error instanceof Error ? error.message : 'Staging failed';
       setBatch(prev => prev.map(b => b.id === id ? { ...b, status: 'error', error: msg } : b));
@@ -502,9 +538,14 @@ export default function StagingLab() {
         <p className="mt-3 text-sm leading-relaxed text-stage-muted">
           Upload a photo. Pick your trade and a pre-built workflow. Generate listing-ready or client-ready images in about a minute.
         </p>
-        <p className="mx-auto mt-4 inline-block rounded-full bg-stage-gold px-4 py-1.5 text-xs font-black uppercase tracking-wider text-stage-gold-ink">
-          Your first 10 photos are free — start right now
-        </p>
+        <p
+                  id="cta-free-photos"
+                  className="mx-auto mt-4 inline-flex items-center gap-2 rounded-full bg-orange-500 px-5 py-2 text-xs font-black uppercase tracking-wider text-white shadow-lg shadow-orange-500/30 transition hover:bg-orange-400 cursor-pointer"
+                  onClick={() => viewfinderRef.current?.scrollIntoView({ behavior: 'smooth' })}
+                >
+                  <Camera className="h-4 w-4" />
+                  Get your free 10 photos
+                </p>
       </section>
 
       {/* Showcase — who it's for */}
@@ -523,6 +564,24 @@ export default function StagingLab() {
         <p className="mt-4 text-center text-xs leading-relaxed text-stage-muted">
           Show clients the finished job before you start it. Close more listings and win more bids — no designer, no photo shoot, no monthly contract.
         </p>
+      </section>
+
+      {/* Why we win */}
+      <section className="mx-auto mt-8 w-full max-w-3xl px-4">
+        <div className="rounded-2xl border border-stage-line bg-stage-panel p-6">
+          <h2 className="text-lg font-black tracking-tight text-stage-gold">
+            Why Multi-Lingual beats legacy staging systems
+          </h2>
+          <ul className="mt-3 list-inside list-disc space-y-2 text-sm leading-relaxed text-stage-muted">
+            <li>First multi-lingual virtual staging platform — speak to clients in their language.</li>
+            <li>Instant generation in about a minute, no photo shoot required.</li>
+            <li>Pay as you go — only pay for the photos you download.</li>
+            <li>Continuous improvements and new styles added weekly.</li>
+          </ul>
+          <p className="mt-4 text-xs font-semibold text-stage-gold">
+            We continue to improve our product and stay with us!
+          </p>
+        </div>
       </section>
 
       {/* STEP 1 — Tabs + Styles (must pass before generate) */}
@@ -623,11 +682,12 @@ export default function StagingLab() {
         )}
 
         <div
-          onClick={() => !busy && batch.length < MAX_BATCH && fileRef.current?.click()}
-          className={`relative flex min-h-[420px] cursor-pointer flex-col items-center justify-center overflow-hidden rounded-3xl border-2 border-dashed bg-stage-panel transition-all duration-300 ${
-            batch.length ? 'border-stage-line' : 'border-stage-line hover:border-stage-gold hover:scale-[1.01]'
-          }`}
-        >
+                  ref={viewfinderRef}
+                  onClick={() => !busy && batch.length < MAX_BATCH && fileRef.current?.click()}
+                  className={`relative flex min-h-[420px] cursor-pointer flex-col items-center justify-center overflow-hidden rounded-3xl border-2 border-dashed bg-stage-panel transition-all duration-300 ${
+                    batch.length ? 'border-stage-line' : 'border-stage-line hover:border-stage-gold hover:scale-[1.01]'
+                  }`}
+                >
           <input
             ref={fileRef}
             type="file"
@@ -736,7 +796,7 @@ export default function StagingLab() {
                 type="button"
                 disabled={busy}
                 onClick={() => productRef.current?.click()}
-                className="flex h-16 items-center justify-center rounded-xl border-2 border-dashed border-stage-line px-4 text-xs font-semibold text-stage-muted hover:border-stage-gold hover:text-stage-ink disabled:opacity-50"
+                className="flex h-16 items-center justify-center rounded-xl border-2 border-dashed border-orange-500 bg-orange-500/10 px-4 text-xs font-semibold text-orange-500 hover:bg-orange-500 hover:text-white disabled:opacity-50"
               >
                 + Add product photo
               </button>
@@ -749,19 +809,19 @@ export default function StagingLab() {
           <textarea
             value={notes}
             onChange={e => setNotes(e.target.value.slice(0, 600))}
-            placeholder="Optional notes — applied to every photo in the batch"
+            placeholder={placeholderText}
             className="w-full rounded-2xl border border-stage-line bg-stage-deep px-4 py-3 text-sm text-stage-ink placeholder:text-stage-muted focus:border-stage-gold focus:outline-none transition"
             rows={2}
           />
 
           <div className="grid grid-cols-2 gap-2">
             <button
-              onClick={() => void runGenerate()}
-              disabled={busy || batch.length === 0}
-              className="rounded-2xl bg-stage-gold py-3.5 text-sm font-black uppercase tracking-wider text-stage-gold-ink transition-all duration-200 hover:bg-stage-gold-soft hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:hover:scale-100"
-            >
-              {busy ? 'Working…' : `Generate batch (${batch.filter(b => b.status === 'ready' || b.status === 'error').length || batch.length})`}
-            </button>
+                          onClick={() => void runGenerate()}
+                          disabled={busy || batch.length === 0}
+                          className="rounded-2xl bg-orange-500 py-3.5 text-sm font-black uppercase tracking-wider text-white transition-all duration-200 hover:bg-orange-400 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:hover:scale-100"
+                        >
+                          {busy ? 'Working…' : `Generate batch (${batch.filter(b => b.status === 'ready' || b.status === 'error').length || batch.length})`}
+                        </button>
             <button
               onClick={() => activeId && void redoOne(activeId)}
               disabled={busy || !activeId}
@@ -779,6 +839,7 @@ export default function StagingLab() {
           </button>
           <p className="text-center text-[11px] text-stage-muted">
             Same prompt for the whole batch. Regenerations are free. First 10 clean downloads are free — then 1 credit each.
+            {!session && ` · ${Math.max(0, 10 - freeGenerationsUsed)} free generations left`}
           </p>
         </div>
 
