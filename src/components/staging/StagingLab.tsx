@@ -550,11 +550,11 @@ export default function StagingLab() {
 
       {/* Showcase — who it's for */}
       <section className="mx-auto mt-8 w-full max-w-3xl px-4">
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-3">
           {SHOWCASE.map(card => (
             <figure key={card.title} className="overflow-hidden rounded-2xl border border-stage-line bg-stage-panel">
               <img src={card.src} alt={card.title} width={1024} height={768} loading="lazy" className="aspect-[4/3] w-full object-cover" />
-              <figcaption className="p-4">
+              <figcaption className="p-3">
                 <div className="text-xs font-black text-stage-ink sm:text-sm">{card.title}</div>
                 <p className="mt-1 text-[11px] leading-snug text-stage-muted sm:text-xs">{card.text}</p>
               </figcaption>
@@ -564,49 +564,6 @@ export default function StagingLab() {
         <p className="mt-4 text-center text-xs leading-relaxed text-stage-muted">
           Show clients the finished job before you start it. Close more listings and win more bids — no designer, no photo shoot, no monthly contract.
         </p>
-      </section>
-
-      {/* Before / After — see the transformation */}
-      <section className="mx-auto mt-8 w-full max-w-3xl px-4">
-        <h2 className="text-center text-lg font-black tracking-tight text-stage-gold">
-          Before & After — See the transformation
-        </h2>
-        <div className="mt-4 grid gap-4">
-          {/* Real Estate Staging Before/After */}
-          <div className="rounded-2xl border border-stage-line bg-stage-panel p-4">
-            <h3 className="text-sm font-bold text-stage-ink">Real Estate Staging</h3>
-            <div className="mt-3 grid grid-cols-2 gap-2">
-              <div>
-                <img src={tradeRealtor} alt="Before staging" className="aspect-[4/3] w-full rounded-xl object-cover" />
-                <p className="mt-1 text-[11px] font-semibold text-stage-muted">Before</p>
-              </div>
-              <div>
-                <img src={tradeRemodel} alt="After staging" className="aspect-[4/3] w-full rounded-xl object-cover" />
-                <p className="mt-1 text-[11px] font-semibold text-stage-muted">After</p>
-              </div>
-            </div>
-            <p className="mt-2 text-[11px] text-stage-muted">
-              Empty rooms become move-in-ready listing photos before the open house.
-            </p>
-          </div>
-          {/* Fence / Product Mockup Before/After */}
-          <div className="rounded-2xl border border-stage-line bg-stage-panel p-4">
-            <h3 className="text-sm font-bold text-stage-ink">Fence / Product Mockup</h3>
-            <div className="mt-3 grid grid-cols-2 gap-2">
-              <div>
-                <img src={tradeRoofer} alt="Before fence" className="aspect-[4/3] w-full rounded-xl object-cover" />
-                <p className="mt-1 text-[11px] font-semibold text-stage-muted">Before</p>
-              </div>
-              <div>
-                <img src={tradeLandscaper} alt="After fence" className="aspect-[4/3] w-full rounded-xl object-cover" />
-                <p className="mt-1 text-[11px] font-semibold text-stage-muted">After</p>
-              </div>
-            </div>
-            <p className="mt-2 text-[11px] text-stage-muted">
-              Show the homeowner their new fence, siding, or product right in the context of the property.
-            </p>
-          </div>
-        </div>
       </section>
 
       {/* Why we win */}
@@ -624,22 +581,6 @@ export default function StagingLab() {
           <p className="mt-4 text-xs font-semibold text-stage-gold">
             We continue to improve our product and stay with us!
           </p>
-        </div>
-      </section>
-
-      {/* Selling points — no experience needed */}
-      <section className="mx-auto mt-8 w-full max-w-3xl px-4">
-        <div className="rounded-2xl border border-stage-line bg-stage-panel p-6">
-          <h2 className="text-lg font-black tracking-tight text-stage-gold">
-            No experience needed — we made tech simple for you
-          </h2>
-          <ul className="mt-3 list-inside list-disc space-y-2 text-sm leading-relaxed text-stage-muted">
-            <li>Firsts in the industry — made for your trade, in your language.</li>
-            <li>No skills required — just upload a photo and pick a workflow.</li>
-            <li>No log in required — start generating right away.</li>
-            <li>We use your Stripe as your log in — secure and simple.</li>
-            <li>We don't ask for log in until after 10 photos.</li>
-          </ul>
         </div>
       </section>
 
