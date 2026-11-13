@@ -1,0 +1,21 @@
+import {afterEach,expect,it,vi} from 'vitest';
+import {SoloInterpreter} from '@/lib/solo-interpreter';
+import {interpretSpeechFn} from '@/lib/interpret.functions';
+vi.mock('@/lib/interpret.functions',()=>({interpretSpeechFn:vi.fn(async()=>({heard:'Hello',text:'Hola',lang:'es'}))}));
+vi.mock('@/lib/speech-playback',()=>({speakTranslation:vi.fn(async()=>{}),getResponsePauseMs:()=>200}));
+afterEach(()=>{vi.restoreAllMocks();vi.unstubAllGlobals();});
+it('submits speech during a 200ms pause while the microphone stays open',async()=>{
+ let now=0,level=0.1,tick:FrameRequestCallback=()=>{};const stop=vi.fn();
+ vi.spyOn(performance,'now').mockImplementation(()=>now);
+ vi.stubGlobal('navigator',{mediaDevices:{getUserMedia:async()=>({getTracks:()=>[{stop}]})}});
+ vi.stubGlobal('AudioContext',class {state='running';createAnalyser(){return {fftSize:1024,getFloatTimeDomainData:(data:Float32Array)=>data.fill(level)}}createMediaStreamSource(){return {connect:vi.fn()}}close(){return Promise.resolve()}});
+ vi.stubGlobal('MediaRecorder',class {static isTypeSupported(){return true} state='inactive';mimeType='audio/webm';ondataavailable?:(e:{data:Blob})=>void;onstop?:()=>void;start(){this.state='recording'}stop(){this.state='inactive';const blob={size:512,arrayBuffer:async()=>new Uint8Array(512).buffer} as Blob;this.ondataavailable?.({data:blob});this.onstop?.()}});
+ vi.stubGlobal('Blob',class {arrayBuffer(){return Promise.resolve(new Uint8Array(512).buffer)}type='audio/webm'});
+ vi.stubGlobal('requestAnimationFrame',(callback:FrameRequestCallback)=>{tick=callback;return 1});vi.stubGlobal('cancelAnimationFrame',vi.fn());
+ const busy=vi.fn();const line=vi.fn();let release: (()=>void)|undefined;
+ const interpreter=new SoloInterpreter('en','es',line,busy);interpreter.setOutput(()=>new Promise<void>(resolve=>{release=resolve;}),()=>{});await interpreter.start();
+ level=0;now=199;tick(now);expect(interpretSpeechFn).not.toHaveBeenCalled();
+ now=201;tick(now);await vi.waitFor(()=>expect(interpretSpeechFn).toHaveBeenCalledTimes(1));
+ await vi.waitFor(()=>expect(line).toHaveBeenCalledTimes(1));expect(busy).toHaveBeenCalledWith(true);expect(busy.mock.calls.at(-1)?.[0]).toBe(false);release?.();
+ expect(stop).not.toHaveBeenCalled();interpreter.stop();expect(stop).toHaveBeenCalledOnce();
+});

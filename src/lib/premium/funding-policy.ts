@@ -1,0 +1,2 @@
+import {z} from 'zod';
+export const voiceFundingSchema=z.object({enabled:z.boolean(),amount:z.union([z.literal(100),z.literal(500),z.literal(1000)]),limit:z.number().int().min(100).max(100000),consent:z.boolean()}).refine(v=>v.limit>=v.amount,{message:'Limit below refill amount'});

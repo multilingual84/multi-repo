@@ -1,0 +1,4 @@
+ALTER TABLE public.premium_voice_funding DROP CONSTRAINT premium_voice_funding_amount_cents_check;
+ALTER TABLE public.premium_voice_funding ADD CONSTRAINT premium_voice_funding_amount_cents_check CHECK (amount_cents IN (100,500,1000));
+ALTER TABLE public.premium_voice_funding DROP CONSTRAINT premium_voice_funding_monthly_limit_cents_check;
+ALTER TABLE public.premium_voice_funding ADD CONSTRAINT premium_voice_funding_monthly_limit_cents_check CHECK (monthly_limit_cents BETWEEN 100 AND 100000);

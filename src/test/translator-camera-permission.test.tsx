@@ -1,0 +1,23 @@
+import {cleanup,fireEvent,render,waitFor} from '@testing-library/react';
+import {afterEach,expect,it,vi} from 'vitest';
+import WalkingTranslator from '@/components/WalkingTranslator';
+vi.mock('@/lib/free-session',()=>({ensureFreeSession:vi.fn(async()=>null)}));
+vi.mock('@/lib/local-language.functions',()=>({getLocalCountry:vi.fn(async()=>null)}));
+vi.mock('@/components/VenueQRPreview',()=>({default:()=>null}));
+vi.mock('@/components/MeetingBroadcastPreview',()=>({default:()=>null}));
+vi.mock('qrcode',()=>({toDataURL:vi.fn(async()=>'')}));
+afterEach(()=>{cleanup();vi.unstubAllGlobals();});
+it('requests camera only after Continue and releases it on close',async()=>{
+ const stop=vi.fn();const getUserMedia=vi.fn(async()=>({getTracks:()=>[{stop}]}));
+ vi.stubGlobal('navigator',{mediaDevices:{getUserMedia}});
+ const view=render(<WalkingTranslator locale="en"/>);
+ fireEvent.click(view.getByRole('button',{name:'Open camera'}));
+ expect(getUserMedia).not.toHaveBeenCalled();
+ fireEvent.click(view.getByRole('button',{name:/^Cancel$/}));
+ expect(getUserMedia).not.toHaveBeenCalled();
+ fireEvent.click(view.getByRole('button',{name:'Open camera'}));
+ fireEvent.click(view.getByRole('button',{name:/^Continue$/}));
+ await waitFor(()=>expect(getUserMedia).toHaveBeenCalledWith({video:{facingMode:'environment',width:{ideal:1280}},audio:false}));
+ fireEvent.click(await view.findByRole('button',{name:'Close camera'}));
+ expect(stop).toHaveBeenCalledTimes(1);
+});

@@ -1,0 +1,11 @@
+import {expect,it} from 'vitest';
+import {broadcastAccessEnd,broadcastLanguages,BROADCAST_FREE_MS,BROADCAST_LISTENERS,broadcastLink} from '@/lib/public-broadcast-policy';
+import {cleanCallShareLink} from '@/lib/call-share-actions';
+import {phoneMicrophoneId} from '@/lib/public-broadcast-input';
+const created='2026-10-01T00:00:00Z';const start=Date.parse(created);
+it('grants exactly seven free days and rejects expiry',()=>{expect(BROADCAST_FREE_MS).toBe(604800000);expect(broadcastAccessEnd(created,false,null,start+604800000-1)).toBe(start+604800000);expect(broadcastAccessEnd(created,false,null,start+604800000)).toBeNull();});
+it('unlocks expired trial with active Solo purchase, not unpaid checkout',()=>{const now=start+8*86400000;const renews='2026-10-31T00:00:00Z';expect(broadcastAccessEnd(created,true,renews,now)).toBe(now+1800000);expect(broadcastAccessEnd(created,false,renews,now)).toBeNull();expect(broadcastAccessEnd(created,true,created,now)).toBeNull();});
+it('caps pilot at five listeners',()=>expect(BROADCAST_LISTENERS).toBe(5));
+it('deduplicates translation languages',()=>expect(broadcastLanguages(['ja','ja','es','invalid!'])).toEqual(['ja','es']));
+it('shares one room without editor load parameters',()=>{const link='https://multi-lingual.tech/?__lovable_load_id=test#meeting-abc123def456';expect(cleanCallShareLink(link)).toBe('https://multi-lingual.tech/#meeting-abc123def456');expect(broadcastLink('https://multi-lingual.tech/?editor=1','abc')).toBe('https://multi-lingual.tech/listen/abc');});
+it('prefers built-in phone input instead of Bluetooth microphone',()=>expect(phoneMicrophoneId([{kind:'audioinput',label:'Bluetooth headset',deviceId:'bt'},{kind:'audioinput',label:'Built-in microphone',deviceId:'phone'}] as MediaDeviceInfo[])).toBe('phone'));

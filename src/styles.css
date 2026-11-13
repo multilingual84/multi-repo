@@ -1,0 +1,672 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+/* Notification consent must sit above the existing wallet dialog. */
+[data-qr-sharing-offer] { position:sticky; top:0; z-index:41; background:var(--qr-share-red); color:var(--qr-share-foreground); border-bottom:1px solid var(--border); }
+[data-qr-sharing-offer] > .qr-sharing-tab { margin:auto; border-radius:0; }
+.talking-environment { position:fixed; inset:0; height:100dvh; z-index:45; display:flex; flex-direction:column; background:var(--background); color:var(--foreground); }
+.talking-environment-header { display:flex; flex:none; align-items:center; justify-content:space-between; gap:12px; border-bottom:1px solid var(--border); padding:calc(8px + env(safe-area-inset-top)) 12px 8px; background:var(--background); }
+.talking-environment-scroll { flex:1; min-height:0; overflow-y:auto; overscroll-behavior-y:contain; padding-bottom:env(safe-area-inset-bottom); }
+.qr-camera-flash { animation:ecosystem-blink 2.6s ease-in-out infinite; }
+@media (prefers-reduced-motion:reduce) { .qr-camera-flash { animation:none; } }
+[data-notification-consent] { z-index: 250; background: var(--card); color: var(--card-foreground); width: min( calc(100% - 24px), 480px ); max-height: 85dvh; overflow-y: auto; }
+body:has([data-notification-consent]) [data-state="open"][role="dialog"]:not([data-notification-consent]) { pointer-events: none; }
+
+@custom-variant dark (&:is(.dark *));
+
+:root { --ecosystem-console-background: oklch(0.1 0.005 260); }
+:root { --orange: oklch(0.72 0.19 50); --orange-foreground: oklch(0.15 0.02 50); --yellow: oklch(0.86 0.17 92); --yellow-foreground: oklch(0.18 0.03 90); --qr-share-red: oklch(0.53 0.23 27); --qr-share-foreground: oklch(0.99 0 0); }
+.qr-sharing-tab { background:var(--qr-share-red); color:var(--qr-share-foreground); border-color:var(--qr-share-red); display:block; padding:10px 12px; font-size:15px; line-height:1.5; font-weight:400; letter-spacing:0; text-transform:none; text-align:left; border-radius:20px; }
+.qr-sharing-tab:hover { background:var(--qr-share-red); color:var(--qr-share-foreground); filter:brightness(1.07); }
+/* Raised-hand stop sign floated so the wording runs the full tab width. */
+.qr-stop-hand { float:left; width:44px; height:44px; margin:1px 10px 0 0; }
+.qr-stop-hand > img { display:block; width:100%; height:100%; object-fit:contain; }
+.qr-stripe-wordmark { font-size:22px; font-weight:900; font-style:italic; text-transform:lowercase; letter-spacing:0; }
+@media print { .venue-qr-dialog [data-qr-purpose-controls] { display:none; } }
+/* Printing the visitor's own code sends the code, its instructions and the keep-a-copy notice to paper. */
+@media print {
+  body:has(.personal-code-card) { --background: oklch(1 0 0); --foreground: oklch(0 0 0); }
+  body:has(.personal-code-card) * { visibility: hidden; }
+  body:has(.personal-code-card) .personal-code-card,
+  body:has(.personal-code-card) .personal-code-card * { visibility: visible; }
+  body:has(.personal-code-card) .personal-code-card {
+    position: absolute; inset: 0 auto auto 0; transform: none;
+    width: 100%; max-width: none; border: none; box-shadow: none; background: var(--background); color: var(--foreground);
+  }
+  body:has(.personal-code-card) .personal-code-card button { display: none; }
+}
+
+:root { --flag-mosaic-blue: #2f6fed; --flag-mosaic-red: #e0392e; --flag-mosaic-yellow: #f3c614; --flag-mosaic-green: #17954c; }
+/* The meeting-QR plate: white backdrop with a black frame so the code stays scannable. */
+:root { --qr-plate: oklch(1 0 0); --qr-plate-line: oklch(0 0 0); }
+.qr-plate { background: var(--qr-plate); }
+.qr-plate [data-pass-qr] { border: 3px solid var(--qr-plate-line); }
+.qr-plate [data-qr-earning-footer] p { color: var(--ink); }
+.qr-plate [data-qr-earning-footer] button { color: var(--foreground); }
+.all-flags-mosaic { display:grid; grid-template-columns:repeat(2,6px); gap:2px; padding:2.5px; border-radius:2px; }
+.all-flags-mosaic > span { width:6px; height:6px; border-radius:1.5px; }
+.all-flags-mosaic > span:nth-child(1) { background:var(--flag-mosaic-blue); }
+.all-flags-mosaic > span:nth-child(2) { background:var(--flag-mosaic-red); }
+.all-flags-mosaic > span:nth-child(3) { background:var(--flag-mosaic-yellow); }
+.all-flags-mosaic > span:nth-child(4) { background:var(--flag-mosaic-green); }
+[data-translator-language-toolbar] > label,
+[data-translator-language-toolbar] [data-call-audio-controls] > label,
+[data-translator-local-language] { display:grid; grid-template-rows:36px 44px auto; justify-items:center; align-items:center; gap:4px; min-width:0; }
+[data-translator-language-toolbar] > label > span,
+[data-translator-language-toolbar] [data-call-audio-controls] > label > span { grid-row:1; text-align:center; }
+[data-translator-language-toolbar] [role=switch] { grid-row:2; }
+[data-translator-local-language] > label { grid-row:1; }
+[data-translator-local-language] > button { grid-row:2; width:36px; height:36px; min-width:36px; min-height:36px; }
+.ecosystem-console { background: var(--ecosystem-console-background); }
+@keyframes ecosystem-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.25; } }
+.ecosystem-blink { animation: ecosystem-blink 1.2s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .ecosystem-blink { animation: none; } }
+@keyframes tap-nudge-left { 0%, 100% { transform: translateX(0); } 20%, 85% { transform: translateX(4px); } }
+@keyframes tap-nudge-right { 0%, 100% { transform: translateX(0); } 20%, 85% { transform: translateX(-4px); } }
+@keyframes tap-spark-pulse { 0%, 100% { opacity: 0.3; transform: scale(0.8); } 20%, 85% { opacity: 1; transform: scale(1.15); } }
+.tap-phone-left { animation: tap-nudge-left 3s ease-in-out infinite; }
+.tap-phone-right { animation: tap-nudge-right 3s ease-in-out infinite; }
+.tap-spark { display: inline-block; height: 6px; width: 6px; border-radius: 9999px; background: currentColor; animation: tap-spark-pulse 3s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .tap-phone-left, .tap-phone-right, .tap-spark { animation: none; } }
+/* The tap tab keeps a rim-tight yellow bloom: it stays within its own row and never washes over the tabs above or below. */
+@keyframes tap-halo { 0%, 100% { box-shadow: 0 0 0 1px color-mix(in oklch, var(--signal) 50%, transparent), 0 0 4px 1px color-mix(in oklch, var(--signal) 55%, transparent), 0 0 8px 1px color-mix(in oklch, var(--signal) 22%, transparent); } 50% { box-shadow: 0 0 0 1px color-mix(in oklch, var(--signal) 80%, transparent), 0 0 7px 2px color-mix(in oklch, var(--signal) 72%, transparent), 0 0 12px 2px color-mix(in oklch, var(--signal) 30%, transparent); } }
+.tap-glow { box-shadow: 0 0 0 1px color-mix(in oklch, var(--signal) 60%, transparent), 0 0 5px 1px color-mix(in oklch, var(--signal) 62%, transparent), 0 0 10px 2px color-mix(in oklch, var(--signal) 26%, transparent); animation: tap-halo 2.2s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .tap-glow { animation: none; } }
+
+@media print {
+  body:has(.venue-qr-dialog) { --background: oklch(1 0 0); --foreground: oklch(0 0 0); }
+  body:has(.venue-qr-dialog) * { visibility: hidden; }
+  body:has(.venue-qr-dialog) .venue-qr-dialog,
+  body:has(.venue-qr-dialog) .venue-qr-dialog * { visibility: visible; }
+  body:has(.venue-qr-dialog) .venue-qr-dialog {
+    position: absolute; inset: 0 auto auto 0; transform: none;
+    width: 100%; max-width: none; max-height: none; overflow: visible;
+    border: none; box-shadow: none; background: var(--background); color: var(--foreground);
+  }
+  body:has(.venue-qr-dialog) [data-venue-actions],
+  body:has(.venue-qr-dialog) .venue-qr-dialog > button { display: none; }
+}
+
+/* Account preview is scoped so the existing page remains unchanged. */
+.account-preview {
+  --background: oklch(0.12 0.008 260);
+  --foreground: oklch(0.96 0.004 260);
+  --card: oklch(0.18 0.008 260);
+  --card-foreground: var(--foreground);
+  --primary: oklch(0.8 0.13 210);
+  --primary-foreground: oklch(0.12 0.008 260);
+  --accent: oklch(0.27 0.035 210);
+  --accent-foreground: var(--foreground);
+  --muted-foreground: oklch(0.72 0.015 260);
+  --border: oklch(0.3 0.015 260);
+  --input: var(--border);
+  --signal: oklch(0.86 0.16 90);
+  --switch-on: oklch(0.78 0.17 145);
+}
+
+/*
+ * Design system definition.
+ *
+ * The @theme inline block maps CSS custom properties to Tailwind utility
+ * classes (e.g. --color-primary -> bg-primary, text-primary).
+ *
+ * The :root and .dark blocks define the actual color values using oklch.
+ * All colors MUST use oklch format.
+ *
+ * To add a new semantic color:
+ * 1. Add the variable to :root (light value) and .dark (dark value)
+ * 2. Register it in @theme inline as --color-<name>: var(--<name>)
+ */
+
+@theme inline {
+  --color-ink: var(--ink);
+  --color-ink-foreground: var(--ink-foreground);
+  --color-signal: var(--signal);
+  --color-orange: var(--orange);
+  --color-orange-foreground: var(--orange-foreground);
+  --color-yellow: var(--yellow);
+  --color-yellow-foreground: var(--yellow-foreground);
+  --color-thunder: var(--thunder);
+  --color-affiliate-blue: var(--affiliate-blue);
+  --color-affiliate-blue-foreground: var(--affiliate-blue-foreground);
+  --color-banner-navy: var(--banner-navy);
+  --color-mic-ambient: var(--mic-ambient);
+  --color-voice-ready: var(--voice-ready);
+  --color-switch-on: var(--switch-on);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-ring-offset-background: var(--background);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+:root {
+  --radius: 0.625rem;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.129 0.042 264.695);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.129 0.042 264.695);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.129 0.042 264.695);
+  --primary: oklch(0.208 0.042 265.755);
+  --primary-foreground: oklch(0.984 0.003 247.858);
+  --secondary: oklch(0.968 0.007 247.896);
+  --secondary-foreground: oklch(0.208 0.042 265.755);
+  --muted: oklch(0.968 0.007 247.896);
+  --muted-foreground: oklch(0.554 0.046 257.417);
+  --accent: oklch(0.968 0.007 247.896);
+  --accent-foreground: oklch(0.208 0.042 265.755);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.984 0.003 247.858);
+  --border: oklch(0.929 0.013 255.508);
+  --input: oklch(0.929 0.013 255.508);
+  --ring: oklch(0.704 0.04 256.788);
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --sidebar: oklch(0.984 0.003 247.858);
+  --sidebar-foreground: oklch(0.129 0.042 264.695);
+  --sidebar-primary: oklch(0.208 0.042 265.755);
+  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
+  --sidebar-accent: oklch(0.968 0.007 247.896);
+  --sidebar-accent-foreground: oklch(0.208 0.042 265.755);
+  --sidebar-border: oklch(0.929 0.013 255.508);
+  --sidebar-ring: oklch(0.704 0.04 256.788);
+}
+
+.dark {
+  --background: oklch(0.129 0.042 264.695);
+  --foreground: oklch(0.984 0.003 247.858);
+  --card: oklch(0.208 0.042 265.755);
+  --card-foreground: oklch(0.984 0.003 247.858);
+  --popover: oklch(0.208 0.042 265.755);
+  --popover-foreground: oklch(0.984 0.003 247.858);
+  --primary: oklch(0.929 0.013 255.508);
+  --primary-foreground: oklch(0.208 0.042 265.755);
+  --secondary: oklch(0.279 0.041 260.031);
+  --secondary-foreground: oklch(0.984 0.003 247.858);
+  --muted: oklch(0.279 0.041 260.031);
+  --muted-foreground: oklch(0.704 0.04 256.788);
+  --accent: oklch(0.279 0.041 260.031);
+  --accent-foreground: oklch(0.984 0.003 247.858);
+  --destructive: oklch(0.704 0.191 22.216);
+  --destructive-foreground: oklch(0.984 0.003 247.858);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.551 0.027 264.364);
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  --sidebar: oklch(0.208 0.042 265.755);
+  --sidebar-foreground: oklch(0.984 0.003 247.858);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
+  --sidebar-accent: oklch(0.279 0.041 260.031);
+  --sidebar-accent-foreground: oklch(0.984 0.003 247.858);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.551 0.027 264.364);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+}
+
+:root {
+  --background: oklch(0.28 0.09 265);
+  --foreground: oklch(1 0 0);
+  --card: oklch(0.37 0.11 265);
+  --card-foreground: oklch(1 0 0);
+  --primary: oklch(0.55 0.24 262);
+  --primary-foreground: oklch(1 0 0);
+  --accent: oklch(0.65 0.19 255);
+  --accent-foreground: oklch(0.2 0.06 265);
+  --muted: oklch(0.37 0.11 265);
+  --muted-foreground: oklch(0.82 0.05 262);
+  --border: oklch(0.45 0.11 265);
+  --input: oklch(0.45 0.11 265);
+  --ink: oklch(1 0 0);
+  --ink-foreground: oklch(0.28 0.09 265);
+  --signal: oklch(0.55 0.24 262);
+  --thunder: oklch(0.722 0.19 50);
+  --affiliate-blue: oklch(0.55 0.24 262);
+  --affiliate-blue-foreground: oklch(1 0 0);
+  --banner-navy: oklch(0.23 0.08 265);
+  --mic-ambient: oklch(0.65 0.19 255);
+  --voice-ready: oklch(0.75 0.2 145);
+  --switch-on: oklch(0.72 0.17 145);
+  --mic-ambient-shadow: 0 0 8px color-mix(in oklch, var(--mic-ambient) 55%, transparent), 0 0 18px color-mix(in oklch, var(--mic-ambient) 30%, transparent);
+  --dusk-gradient: linear-gradient(180deg, oklch(0.23 0.08 265), oklch(0.37 0.12 262) 55%, oklch(0.55 0.24 262));
+}
+
+@keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+@utility animate-marquee { animation: marquee 20s linear infinite; }
+@utility ml-hero { background: radial-gradient(circle at 90% 10%, oklch(0.53 0.24 262 / 0.12), transparent 50%), radial-gradient(circle at 0% 100%, oklch(0.66 0.2 35 / 0.1), transparent 45%), var(--background); }
+@utility ml-nav { padding-bottom: 0.25rem; transition: color 0.2s; &:hover { color: var(--accent); } }
+@utility ml-nav-active { color: var(--primary); border-bottom: 2px solid var(--primary); }
+@utility ml-skyline-overlay { background: linear-gradient(100deg, oklch(0.15 0.06 265 / 0.88) 0%, oklch(0.15 0.06 265 / 0.55) 55%, oklch(0.15 0.06 265 / 0.25) 100%); }
+/* OKC skyline behind the hero card. The Devon Energy Center sits about 62% across
+   the photo, so the crop is anchored there instead of the middle — a centred crop
+   cut the tower out on phones. Below desktop widths the crop is bounded to a band
+   so the tower stays sharp instead of a 2x zoomed sliver. */
+.ml-skyline-layer {
+  position: absolute;
+  inset: 0;
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: 62% 25%;
+}
+/* Keep translated overview text inside its grid track, including short landscape screens. */
+[data-hero-skyline] { grid-template-columns: minmax(0, 1fr); }
+[data-hero-skyline] p { overflow-wrap: anywhere; }
+@media (min-width: 768px) {
+  [data-hero-skyline] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 479px) {
+  [data-hero-skyline] { padding: 1rem; }
+  [data-hero-skyline] h1 { font-size: 1.75rem; }
+}
+@media (min-width: 768px) and (max-width: 1023px) {
+  [data-hero-skyline] h1 { font-size: 2.25rem; }
+}
+@media (max-width: 1023px) {
+  .ml-skyline-layer {
+    inset: 0 0 auto 0;
+    height: 46%;
+  }
+}
+
+/* Hide Google Translate's top bar so the site layout stays intact */
+.goog-te-banner-frame, .skiptranslate iframe, #goog-gt-tt { display: none !important; }
+body { top: 0 !important; }
+
+/* Flag strip: scrollbar blends into the banner background */
+.flag-scroll { scrollbar-width: thin; scrollbar-color: transparent transparent; }
+.flag-scroll::-webkit-scrollbar { height: 4px; }
+.flag-scroll::-webkit-scrollbar-track { background: transparent; }
+.flag-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 9999px; }
+.flag-scroll::-webkit-scrollbar-thumb:hover { background: var(--primary); }
+
+/* Every flag control in the banner — rolling strip, all-flags mosaic and the
+   grid's dialect buttons — eases between states instead of snapping. Colour
+   and glow only: the shared feedback rule keeps geometry fixed, so nothing
+   moves or scales while it fades. */
+[data-flag-banner] button {
+  transition-property: background-color, border-color, color, box-shadow, outline-color;
+  transition-duration: 180ms;
+  transition-timing-function: ease-out;
+}
+
+[data-flag-banner] [data-all-flags-button] { translate: 0 -2px; }
+
+/* The all-flags panel drifts in from above the strip; visitors who prefer
+   still screens see it appear instantly. */
+@keyframes flag-grid-in {
+  from { opacity: 0; translate: 0 -6px; }
+  to { opacity: 1; translate: 0 0; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  [data-flag-grid-panel] { animation: flag-grid-in 200ms ease-out; }
+}
+
+/* The banner's all-flags panel stretches edge to edge on phones: it cancels
+   the banner's own 8px padding on both sides. Desktop keeps the panel
+   anchored under the mosaic button. */
+@media (max-width: 767px) {
+  [data-flag-banner] [data-flag-grid-wide] { left: -8px; right: -8px; border-radius: 0; }
+}
+
+.flag-mic-ambient {
+  border-color: var(--mic-ambient);
+  box-shadow: var(--mic-ambient-shadow);
+}
+
+/* Personal Translator mic: smoked-glass disc, faint gold rim, green halo only while pressed. */
+.mic-glow {
+  --interaction-glow: var(--voice-ready);
+  --interaction-shadow: 0 0 0 3px color-mix(in oklch, var(--voice-ready) 85%, transparent), 0 0 18px color-mix(in oklch, var(--voice-ready) 65%, transparent), 0 0 40px color-mix(in oklch, var(--voice-ready) 35%, transparent);
+  background: rgba(20, 20, 20, 0.75);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 217, 0, 0.15);
+  color: var(--ink-foreground);
+}
+/* The button shell caps child icons at 16px, so the mic symbol is set here instead. */
+.mic-glow svg { width: 3.5rem; height: 3.5rem; }
+
+/* Mic on state stays visible after the physical tap; geometry never changes. */
+.mic-glow[aria-pressed="true"],
+.flag-mic-ambient[aria-pressed="true"],
+[data-voice-pass][aria-pressed="true"],
+[data-live-mic="true"] {
+  --interaction-glow: var(--voice-ready);
+  border-color: var(--voice-ready);
+  outline: 2px solid var(--voice-ready);
+  outline-offset: -2px;
+  box-shadow: 0 0 0 2px color-mix(in oklch, var(--voice-ready) 75%, transparent), 0 0 18px color-mix(in oklch, var(--voice-ready) 45%, transparent);
+}
+/* Hot mic: the circle behind the mic turns green while it is on. */
+.mic-glow[aria-pressed="true"] { background: color-mix(in oklch, var(--voice-ready) 85%, black); }
+.mic-glow[aria-pressed="true"] svg { color: var(--ink-foreground); }
+.flag-mic-ambient[aria-pressed="true"] svg,
+.flag-mic-ambient[aria-pressed="true"] svg,
+[data-live-mic="true"] svg { color: var(--voice-ready); }
+
+
+
+
+/* Shared feedback never moves or scales controls, including scrolling flags. */
+:root {
+  --interaction-glow: var(--signal);
+  --interaction-shadow: 0 0 0 2px var(--interaction-glow), 0 0 10px color-mix(in oklch, var(--interaction-glow) 45%, transparent);
+}
+:where(button, a[href], [role="tab"], [role="button"], [role="switch"], [role="checkbox"], summary) {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+:where(button, [role="tab"], [role="button"], summary) {
+  min-height: 44px;
+  min-width: 44px;
+}
+/* Pinned header tabs: compact so the block stays under ¼ of the screen, but still tappable. */
+.ml-header button, .ml-header [role="button"] { min-height: 30px; }
+.ml-header [data-phone-qr-pairing] { height:30px; min-height:30px; width:30px; min-width:30px; }
+/* Audio switch: the shared 44px minimum squashes the track into a circle, so the pill
+   geometry is pinned here (unlayered, so it outranks the Tailwind utilities). The label
+   row around it stays 44px tall, so the line remains easy to tap. The venue QR purpose
+   toggle is the same switch, so it is pinned to the same geometry. */
+[data-call-audio-controls] [role="switch"], [data-translator-language-toolbar] [role="switch"], [data-qr-purpose-controls] [role="switch"], [data-premium-voice] [role="switch"], [data-wallet-history] [role="switch"], [data-wallet-card-funding] [role="switch"] {
+  min-width: 0;
+  min-height: 0;
+  position: relative;
+  width: 44px;
+  height: 24px;
+}
+[data-call-audio-controls] [role="switch"] > span, [data-translator-language-toolbar] [role="switch"] > span, [data-qr-purpose-controls] [role="switch"] > span, [data-premium-voice] [role="switch"] > span, [data-wallet-history] [role="switch"] > span {
+  width: 20px;
+  height: 20px;
+  translate: 0 0;
+}
+[data-call-audio-controls] [role="switch"][data-state="checked"] > span, [data-translator-language-toolbar] [role="switch"][data-state="checked"] > span, [data-qr-purpose-controls] [role="switch"][data-state="checked"] > span, [data-premium-voice] [role="switch"][data-state="checked"] > span, [data-wallet-history] [role="switch"][data-state="checked"] > span {
+  translate: 20px 0;
+}
+/* Venue QR dialog: the exit control sits in its own grey box and the title letters stop short
+   of it, so the ✕ is never covered by text. */
+.venue-qr-dialog > button {
+  min-width: 0;
+  min-height: 0;
+  height: 32px;
+  width: 32px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border-radius: 8px;
+  background: var(--muted);
+  color: var(--muted-foreground);
+  border: 1px solid var(--border);
+  opacity: 1;
+  z-index: 10;
+}
+/* Site-wide: every button/tab uses the same lettering as the pinned header tabs (keeps 44px tap targets). */
+button, [role="tab"], [role="button"], a[data-slot="button"] {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  line-height: 1.15;
+}
+/* Department contact cards: keep email addresses in their real lowercase form. */
+[data-department-contacts] button { text-transform: none; letter-spacing: 0; }
+[data-department-contacts] button span span:last-child { font-size: 12px; font-weight: 500; overflow-wrap: anywhere; word-break: normal; }
+:where(button, a[href], [role="tab"], [role="button"], [role="switch"], [role="checkbox"], summary):focus-visible {
+  outline: 2px solid var(--interaction-glow);
+  outline-offset: 2px;
+}
+:where(button, a[href], [role="tab"], [role="button"], [role="switch"], [role="checkbox"], summary):not(:disabled):not([aria-disabled="true"]):active,
+[data-click-feedback="true"] {
+  outline: 2px solid var(--interaction-glow) !important;
+  outline-offset: -2px;
+  box-shadow: var(--interaction-shadow) !important;
+}
+@media (pointer: coarse) {
+  :where(a[href]) { min-height: 44px; }
+  :where(input[type="search"], input[type="text"], input[type="email"], input[type="tel"], textarea, select) {
+    font-size: 16px;
+    min-height: 44px;
+  }
+}
+
+/* Checkout preference boxes: the tick stays, but nothing coloured sits behind it.
+   A native checkbox paints a solid accent block when checked, so this box is drawn
+   by hand — clear interior, thin border, and the tick clipped from the theme's
+   primary colour. Scoped to .ml-check-row so no other control on the site changes. */
+.ml-check-row { position: relative; }
+.ml-check {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 13px;
+  height: 13px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: oklch(1 0 0);
+  cursor: pointer;
+}
+.ml-check:focus-visible {
+  outline: 2px solid var(--interaction-glow);
+  outline-offset: 2px;
+}
+.ml-check-row:has(.ml-check:checked)::after {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: 4px;
+  width: 9px;
+  height: 9px;
+  background: oklch(0 0 0);
+  clip-path: polygon(14% 44%, 0 58%, 40% 100%, 100% 16%, 86% 2%, 37% 71%);
+  pointer-events: none;
+}
+
+/* Venue QR print: one page only, QR large and centered — never the whole site. */
+@media print {
+  body:has(.venue-qr-dialog) { background: var(--background) !important; }
+  body:has(.venue-qr-dialog) > *:not(.venue-qr-dialog):not(:has(.venue-qr-dialog)) { display: none !important; }
+  body:has(.venue-qr-dialog) .venue-qr-dialog {
+    position: relative;
+    inset: 0;
+    width: 100%;
+    max-width: none;
+    max-height: none;
+    height: auto;
+    transform: none;
+    translate: none !important;
+    --tw-translate-x: 0;
+    --tw-translate-y: 0;
+    overflow: visible;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.12in;
+    border: none;
+    box-shadow: none;
+    background: var(--background);
+    padding: 0.25in;
+  }
+  .venue-qr-dialog [data-venue-qr-image] {
+    width: min(7.5in, 100vw, 80vh);
+    height: min(7.5in, 100vw, 80vh);
+    max-width: 100%;
+  }
+  .venue-qr-dialog [data-slot="dialog-description"] { color: var(--foreground); }
+  .venue-qr-dialog button { display: none; }
+}
+
+/* Wallet icon stays compact without shrinking other header controls. */
+/* Browsing languages is never a sign-in action. Keep the picker unobstructed. */
+body:has([data-flag-grid-panel]) [data-scroll-signin] { visibility:hidden; pointer-events:none; }
+[data-flag-grid-panel] { background:var(--background); z-index:60; isolation:isolate; }
+.access-notice { display:flex; align-items:flex-start; gap:12px; width:100%; padding:12px; border:1px solid var(--qr-share-red); border-radius:8px; background:var(--card); color:var(--card-foreground); overflow-wrap:anywhere; box-shadow:0 8px 24px oklch(0 0 0 / 0.18); }
+.access-notice-exit { display:grid; place-items:center; flex-shrink:0; width:32px; height:32px; min-width:0; min-height:0; border-radius:9999px; color:var(--muted-foreground); }
+.access-notice-exit:hover { background:var(--accent); color:var(--accent-foreground); }
+:root { --wallet-tab: oklch(0.43 0.065 55); --wallet-tab-foreground: oklch(0.98 0.008 80); }
+.ml-header .wallet-corner-tab { width:auto; max-width:96px; height:auto; min-width:38px; min-height:30px; flex-shrink:0; padding:3px 5px; gap:1px; flex-direction:column; border-radius:6px; background:var(--wallet-tab); color:var(--wallet-tab-foreground); font-size:9px; line-height:1.15; white-space:normal; }
+.ml-header .wallet-corner-tab:hover { background:var(--wallet-tab); filter:brightness(1.12); }
+.ml-header .wallet-corner-tab svg { width:21px; height:21px; }
+
+/* QR wallet on portrait phones: shorter PIN entry so the keypad and Unlock fit on one screen. */
+@media (orientation: portrait) and (max-height: 900px) {
+  [data-wallet-panel] { padding: 14px; gap: 8px; }
+  [data-qr-wallet] > * + * { margin-top: 10px !important; }
+  [data-qr-wallet] h2 { font-size: 1.05rem; }
+  [data-qr-wallet] [data-pin-keypad] > * + * { margin-top: 6px !important; }
+  [data-qr-wallet] [data-pin-keypad] input { height: 40px; min-height: 40px; margin-top: 4px; }
+  [data-qr-wallet] [data-pin-keypad] .grid { gap: 6px; }
+  [data-qr-wallet] [data-pin-keypad] button { height: 40px; min-height: 40px; }
+  [data-qr-wallet] img[width="420"] { max-width: 13rem; }
+}
+
+[data-wallet-card-funding] [role="switch"] { min-width:44px; width:44px; min-height:24px; height:24px; padding:0; border-radius:9999px; }
+[data-wallet-card-funding] [role="switch"] > span { width:20px; height:20px; translate:0 0; }
+[data-wallet-card-funding] [role="switch"][data-state="checked"] > span { translate:20px 0; }
+[data-wallet-settings] [role="switch"] { min-width:44px; width:44px; min-height:24px; height:24px; padding:0; border-radius:9999px; }
+[data-wallet-settings] [role="switch"] > span { width:20px; height:20px; translate:0 0; }
+[data-wallet-settings] [role="switch"][data-state="checked"] > span { translate:20px 0; }
+[data-wallet-account], [data-premium-spend] { max-height:85dvh; overflow-y:auto; }
+
+[data-wallet-account], [data-premium-spend] { background:var(--background); color:var(--foreground); opacity:1; isolation:isolate; width:min(100% - 24px, 512px); }
+[data-wallet-account] > div:first-child, [data-premium-spend] > div:first-child { padding-inline:24px; }
+[data-walking-translator] [data-pause-option] { display:flex; flex-direction:column; gap:4px; white-space:normal; }
+[data-voice-match] [role="switch"] { min-width:44px; width:44px; min-height:24px; height:24px; padding:0; border-radius:9999px; }
+[data-voice-match] [role="switch"] > span { width:20px; height:20px; translate:0 0; }
+[data-voice-match] [role="switch"][data-state="checked"] > span { translate:20px 0; }
+/* Nearby phones: the shared 44px minimum squashes the track into a circle, so this
+   toggle is pinned to the same pill geometry the rest of the site uses. */
+[data-nearby-phones] [role="switch"] { min-width:44px; width:44px; min-height:24px; height:24px; padding:0; border-radius:9999px; }
+[data-nearby-phones] [role="switch"] > span { width:20px; height:20px; translate:0 0; }
+[data-nearby-phones] [role="switch"][data-state="checked"] > span { translate:20px 0; }
+
+/* Phones: pinned top bars repaint every scroll frame. Drop the blur (costly on
+   mobile GPUs), give them their own layer and isolate their paint, so the top
+   stays steady while scrolling and the page feels lighter. */
+@media (max-width: 768px), (hover: none) {
+  .ml-header, [data-scroll-signin] > div {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    background-color: var(--background) !important;
+  }
+  html { overscroll-behavior-y: none; }
+}
+
+/* Premium phone polish: color, depth and radii only — no layout, no copy, no
+   blur or animation work, so cheap phones stay fast. Scoped to phone widths. */
+@media (max-width: 640px) {
+  .ml-header {
+    box-shadow: 0 1px 0 color-mix(in oklch, var(--border) 70%, transparent), 0 8px 24px -18px oklch(0 0 0 / 0.9);
+  }
+  [data-hero-skyline] {
+    border-radius: 1.75rem;
+    box-shadow: 0 24px 60px -32px oklch(0 0 0 / 0.85), inset 0 1px 0 color-mix(in oklch, white 8%, transparent);
+  }
+  section.rounded-3xl, article.rounded-3xl, figure.rounded-3xl {
+    border-radius: 1.5rem;
+    box-shadow: 0 16px 40px -28px oklch(0 0 0 / 0.8);
+  }
+  h1, h2, h3 { text-wrap: balance; }
+  .rounded-2xl { border-radius: 1.125rem; }
+  [class*="bg-primary"], [class*="bg-orange"], [class*="bg-thunder"] {
+    box-shadow: inset 0 1px 0 color-mix(in oklch, white 22%, transparent), 0 10px 24px -14px oklch(0 0 0 / 0.7);
+  }
+  .mic-glow { border-radius: 9999px; }
+}
+
+/* Persistent selection is separate from brief tap feedback; paint only, no motion or resizing. */
+:root {
+  --tab-selected-background: var(--primary);
+  --tab-selected-foreground: var(--primary-foreground);
+  --tab-selected-shadow: inset 0 -3px 0 var(--signal), 0 0 0 2px var(--primary), 0 0 10px color-mix(in oklch, var(--primary) 45%, transparent);
+}
+[data-navigation-tab][aria-current="page"],
+[role="tab"][aria-selected="true"] {
+  background: var(--tab-selected-background);
+  color: var(--tab-selected-foreground);
+  outline: 2px solid var(--primary);
+  outline-offset: -2px;
+  box-shadow: var(--tab-selected-shadow);
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+/* The two yellow banners and wallet keep their approved colors while their rim lights up. */
+[data-free-life][aria-current="page"], [data-meetings-tab][aria-current="page"] {
+  background: var(--signal);
+  color: var(--ink);
+}
+[data-wallet-tab][aria-current="page"] {
+  background: var(--wallet-tab);
+  color: var(--wallet-tab-foreground);
+}
+
+/* Bricktown Staging Lab palette: Zoom-style blue (blue surfaces, white text and buttons). */
+:root { --stage-bg: #0b1e4d; --stage-panel: #123068; --stage-deep: #071438; --stage-line: #2a4a8f; --stage-gold: #ffffff; --stage-gold-soft: #dce8ff; --stage-gold-ink: #0b5cff; --stage-ink: #ffffff; --stage-muted: #a9c1ea; --stage-danger: #ff7a7a; }
+@theme inline {
+  --color-stage-bg: var(--stage-bg);
+  --color-stage-panel: var(--stage-panel);
+  --color-stage-deep: var(--stage-deep);
+  --color-stage-line: var(--stage-line);
+  --color-stage-gold: var(--stage-gold);
+  --color-stage-gold-soft: var(--stage-gold-soft);
+  --color-stage-gold-ink: var(--stage-gold-ink);
+  --color-stage-ink: var(--stage-ink);
+  --color-stage-muted: var(--stage-muted);
+  --color-stage-danger: var(--stage-danger);
+}

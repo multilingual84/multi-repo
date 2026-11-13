@@ -1,0 +1,5 @@
+import {it,expect} from 'vitest';
+import {newMailboxKeys,sealMessage,openMessage} from '@/lib/private-message-crypto';
+it('encrypts on send and decrypts only with the receiving key',()=>{const keys=newMailboxKeys(),envelope=sealMessage('private hello',keys.publicKey);expect(envelope.ciphertext).not.toContain('private hello');expect(openMessage(envelope,keys.privateKey)).toBe('private hello');expect(()=>openMessage(envelope,newMailboxKeys().privateKey)).toThrow();});
+it('rejects a modified ciphertext',()=>{const keys=newMailboxKeys(),envelope=sealMessage('private hello',keys.publicKey);envelope.ciphertext=(envelope.ciphertext.startsWith('A')?'B':'A')+envelope.ciphertext.slice(1);expect(()=>openMessage(envelope,keys.privateKey)).toThrow();});
+it('uses fresh nonces and ephemeral keys per message',()=>{const keys=newMailboxKeys();const a=sealMessage('same',keys.publicKey),b=sealMessage('same',keys.publicKey);expect(a.nonce).not.toBe(b.nonce);expect(a.sender_key).not.toBe(b.sender_key);});

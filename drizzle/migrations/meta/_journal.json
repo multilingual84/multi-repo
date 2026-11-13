@@ -1,0 +1,300 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1792405865447,
+      "tag": "0000_create_users_sessions_affiliates",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1792514000647,
+      "tag": "0001_add_free_lifetime_activated",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792535095438,
+      "tag": "0002_zero_signup_anon_grants_and_policies",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1792733140309,
+      "tag": "0003_add_subscription_columns_to_users",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1792811366967,
+      "tag": "0004_create_complaints",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1792814458372,
+      "tag": "0005_complaint_repair_review",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1792847903329,
+      "tag": "0006_lock_anon_tables",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1792879273010,
+      "tag": "0007_migration",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1792908417692,
+      "tag": "0008_private_messaging_mailboxes",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1792908780136,
+      "tag": "0009_private_mailbox_trial_safety",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1792908793161,
+      "tag": "0010_private_message_safe_read_paths",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1792909268456,
+      "tag": "0011_paid_sender_free_replies",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1792909681714,
+      "tag": "0012_isolated_sandbox_and_message_status",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1792973252713,
+      "tag": "0013_device_wallet_pin_access",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1792978184820,
+      "tag": "0014_premium_voice_prepaid_ledger",
+      "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1792978387924,
+      "tag": "0015_free_lifetime_private_text",
+      "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1792981830418,
+      "tag": "0016_premium_voice_sandbox_credits",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1792989153327,
+      "tag": "0017_fleet_wallet_access",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1792989184416,
+      "tag": "0018_fleet_atomic_member_capacity",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1792996889485,
+      "tag": "0019_partner_automatic_commissions",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1792997099700,
+      "tag": "0020_referral_mode_uniqueness",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1792998025563,
+      "tag": "0021_premium_minute_meter_and_funding",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1792998231456,
+      "tag": "0022_harden_voice_minute_meter",
+      "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1792998294959,
+      "tag": "0023_atomic_voice_card_credit",
+      "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1793014482045,
+      "tag": "0024_voice_refill_one_dollar",
+      "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1793021723289,
+      "tag": "0025_retire_enhanced_voice_and_qr_daily_bonus",
+      "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1793060515432,
+      "tag": "0026_daily_allowance_40",
+      "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "7",
+      "when": 1793062966726,
+      "tag": "0027_site_suggestions",
+      "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1793103672856,
+      "tag": "0028_create_pass_reminders",
+      "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1793149711298,
+      "tag": "0029_fee_minor",
+      "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1793156057231,
+      "tag": "0030_public_audio_broadcast",
+      "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1793156371371,
+      "tag": "0031_public_audio_session_liveness",
+      "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1793164325761,
+      "tag": "0032_wallet_web_push",
+      "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1793233076032,
+      "tag": "0033_qr_device_access",
+      "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1793233126865,
+      "tag": "0034_qr_private_messaging",
+      "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
+      "when": 1793234473402,
+      "tag": "0035_atomic_private_qr_enrollment",
+      "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1793234642163,
+      "tag": "0036_qr_enrollment_profile_identifier_type",
+      "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "7",
+      "when": 1793235428128,
+      "tag": "0037_daily_translation_30_minutes",
+      "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1793235686942,
+      "tag": "0038_qr_trial_on_first_use",
+      "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "7",
+      "when": 1793690187630,
+      "tag": "0039_fleet_group_messages",
+      "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1794286796029,
+      "tag": "0040_create_staging_lab",
+      "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "7",
+      "when": 1794444944466,
+      "tag": "0041_staging_ten_free_downloads",
+      "breakpoints": true
+    }
+  ]
+}

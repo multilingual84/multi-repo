@@ -1,0 +1,1 @@
+ALTER TABLE public.users ADD COLUMN free_lifetime_activated BOOLEAN DEFAULT false;

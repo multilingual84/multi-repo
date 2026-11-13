@@ -1,0 +1,3 @@
+import {useEffect} from 'react';
+import {ensureQrAccess,syncQrAccount} from '@/lib/qr-access-browser';
+export default function QrAccessBootstrap(){useEffect(()=>{let disposed=false;const revoked=()=>{if(!disposed)window.dispatchEvent(new Event('ml-access-revoked'));};void ensureQrAccess().catch(revoked);const check=()=>{if(document.visibilityState==='visible')void syncQrAccount().catch(revoked);};window.addEventListener('focus',check);document.addEventListener('visibilitychange',check);const timer=window.setInterval(check,15000);return()=>{disposed=true;clearInterval(timer);window.removeEventListener('focus',check);document.removeEventListener('visibilitychange',check);};},[]);return null;}

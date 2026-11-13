@@ -1,0 +1,41 @@
+# QR-linked private messaging
+
+## What will be added
+- A messaging area linked to an account's QR identity, with Inbox, Compose, Open once, and Close controls, plus recorded audio messages (“audio packs”) and live push-to-talk walkie-talkie. Preserve the existing page layout, six package cards, calling and Personal Translator.
+- Free receiving. Unlimited sending, audio messages and walkie-talkie during the seven-day try-everything trial, in every existing paid tier during its active access, and with a separate **$0.99/year, two-seat** messaging and walkie-talkie subscription. Existing packages retain their seat limits and durations. The retired annual Personal Translator offer stays retired.
+- Private communication networks with QR/link invitations, explicit acceptance, member removal, blocking and a push-to-talk channel. The annual plan covers two named account seats, not an unlimited-member entitlement; larger groups use their existing paid tier seat allowance. Trial users can try the two-seat experience.
+- A changeable QR-linked nickname. Explicitly say **“Your username does not have to be your real name.”** Keep the stable account QR address when the display nickname changes; do not claim verified identity or complete anonymity.
+- A separate messaging SKU and explanation below the existing pricing packages, translated across all site languages. Prices and checkout follow the selected country's currency; unavailable local billing is disabled rather than silently billed in USD.
+- Content-free email alerts through the existing sending service: “You have a private message,” with a link to the site. No message text, QR secret, sender email or translation in alerts.
+- Recipient-consented Clara translation after opening text or playing an audio message. Declining consent leaves the content unshared with the translation service. Live translated walkie-talkie requires both speakers' consent; original audio is immediate and translation follows each sentence. No automatic phone-line access to decrypted messages.
+- Optional cloned translated replies: each speaker gives separate, revocable consent for their own voice, records their own sample, and hears translated replies in that speaker's corresponding cloned voice. Clearly label AI-generated audio. Never clone the other speaker without their permission. Standard synthesized speech remains available when consent is declined.
+- The paywall appears after **one free week**, not before: no purchase required for the trial, receiving remains free, and an active existing paid tier already includes sending/audio/walkie-talkie. Voice-cloning activation depends on an authorized provider, verified retention terms and disclosed running costs; do not advertise it as operational until verified.
+
+## Privacy boundaries
+- Encrypt messages on the sender's device; decrypt on the recipient's device. Keep private keys off the server and out of QR URLs. Use established cryptographic primitives, not a homemade encryption protocol.
+- Opening consumes the encrypted envelope atomically, so it cannot be fetched a second time. The opened text remains visible only for that viewing session and clears on dismissal or leaving the page; audio messages are consumed on first retrieval and cleared after playback or dismissal. No archive or sent-message history. Network membership and account nickname are retained separately from message content.
+- A message that vanishes milliseconds after appearing cannot reasonably be read or translated. “Open once” means removing the server envelope as it is retrieved, not promising that the visible text instantly disappears.
+- **Do not promise permanent millisecond erasure or no records anywhere.** Backups may retain encrypted envelopes; devices can capture screenshots; browser memory cannot be securely wiped on command. Accounts, subscriptions and email delivery have necessary records. Explain these limits alongside the new service without changing existing approved copy.
+- State availability for public and government users without implying government certification, classified-data suitability or verified historical protocol provenance.
+
+## Technical implementation
+1. Use verified account sign-in and existing account email for messaging, not the current device-local free-session handle as authentication. Add a minimal mailbox identity with public encryption keys, protected private account fields, editable display nickname and an account-bound trial start that cannot reset with browser storage.
+2. Add authenticated mailbox operations with strict validation, recipient ownership, rate limits, audio duration/size limits and abuse blocking. Atomically delete-and-return ciphertext only to its recipient. Do not allow direct reads that bypass consumption. Treat audio packs as recorded voice messages, not arbitrary file uploads.
+3. Use browser encryption with fresh message keys/nonces, authenticated ciphertext and device-held recipient private keys. Begin with one registered receiving device; clearly warn that losing its keys makes unread messages unrecoverable. Do not claim sender authenticity until signed-message verification is implemented.
+4. Reuse existing Stripe checkout and paid-only verification for the new two-seat yearly SKU. Add server-enforced sending/audio/walkie-talkie eligibility from the account trial, verified active existing paid tier or verified paid messaging subscription; receiving never requires payment. Enforce accepted seat invitations and existing tier limits. Preserve existing fees and packages.
+5. Add a fixed content-free app-email template and event-based idempotency; do not create email queues or include content in logs.
+6. Keep QR gallery guidance on the messaging QR and exports. Localize the new page, consent, privacy boundaries and price explanation through native translations plus the existing page translation flow.
+7. Use existing WebRTC/signaling foundations for live push-to-talk with authorized network membership, microphone permission, an active transmission indicator, one speaker at a time and automatic resource cleanup. Do not persist live audio. Restricted public Wi-Fi may still need a relay; this feature does not remove that limitation.
+8. Add provider-backed per-speaker voice enrollment and synthesis only after connecting an authorized cloning service. Bind voice ownership and consent on the server; recipients cannot submit arbitrary voice IDs. Revoking consent stops new synthesis, requests provider voice deletion and clears local samples. Do not promise immediate provider deletion, all-language voice coverage or millisecond cloned replies. Display the provider's real retention limits before sample submission.
+
+## Verification before launch
+- Test encryption/decryption, tamper rejection and wrong-key rejection.
+- Test free receiving, exactly seven-day sending access, paid-only annual access, active existing-tier inclusion, two-seat limits, existing tier seat limits and duplicate payment handling.
+- Test unauthorized reads, simultaneous opening, repeated opening, blocked senders and no content in logs or email.
+- Exercise two signed-in accounts end to end: QR addressing, encrypted send, email alert, recipient opening, consented translation and no second retrieval.
+- Verify recorded audio consumption, consented audio translation, nickname changes preserving QR identity, accepted network invitations, member removal, push-to-talk contention and disconnection cleanup.
+- Verify each speaker's clone mapping, denied/revoked consent, wrong-owner access rejection, provider cleanup outcomes and audible translated output. Keep clone controls unavailable until the connection and core flow pass these checks.
+- Test phone portrait layout and regional checkout totals. Do not sell the new plan until its core flow is verified.
+
+## Cost note
+The annual price is the owner's chosen price, not a promise that unlimited translation and email usage cost less than $0.99/year. Provider charges and abuse protection still apply; unlimited sending needs technical rate limits, not message-count billing.

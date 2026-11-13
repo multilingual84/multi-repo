@@ -1,0 +1,4 @@
+import {qrPlacementCopy} from '@/lib/venue-qr-copy';
+import {Camera,Zap} from 'lucide-react';
+import {accessCopy} from '@/lib/qr-access-copy';
+export default function QrPhotoFooter({locale}:{locale:string}){const c=accessCopy(locale),placement=qrPlacementCopy(locale);return <div data-qr-photo-footer className="flex flex-col items-center gap-1 py-2 text-center text-sm font-bold text-signal"><span className="relative inline-flex" aria-hidden><Camera size={30}/><Zap size={15} className="qr-camera-flash absolute -right-2 -top-2"/></span><span>{c.photo}</span><span>✋ {c.free}</span><p className="text-sm text-foreground">{placement.title}</p><p className="text-xs text-muted-foreground">{placement.notice}</p></div>;}

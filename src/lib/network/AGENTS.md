@@ -1,0 +1,2 @@
+- Keep campaign generation stateless and draft-only in server-only helpers behind validated server functions; referral query strings do not activate plans, establish verification, grant earnings, or authorize delivery.
+- Keep campaign copy separate from payment logic and preserve existing checkout modules; draft departments are localized labels, never discovered recipient addresses.

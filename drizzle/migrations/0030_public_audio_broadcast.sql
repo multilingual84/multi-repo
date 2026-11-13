@@ -1,0 +1,17 @@
+CREATE TABLE public.public_audio_broadcasts (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), wallet uuid NOT NULL REFERENCES public.device_wallet_access(credential_handle), created_at timestamptz NOT NULL DEFAULT now(), expires_at timestamptz NOT NULL, ended_at timestamptz, phrase_count integer NOT NULL DEFAULT 0, last_phrase_at timestamptz, connected_ids uuid[] NOT NULL DEFAULT '{}');
+GRANT ALL ON public.public_audio_broadcasts TO service_role;
+ALTER TABLE public.public_audio_broadcasts ENABLE ROW LEVEL SECURITY;
+CREATE TABLE public.public_audio_listeners (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), broadcast_id uuid NOT NULL REFERENCES public.public_audio_broadcasts(id), token_hash text NOT NULL, language text NOT NULL DEFAULT 'en', last_seen timestamptz NOT NULL DEFAULT now(), joined_at timestamptz NOT NULL DEFAULT now());
+GRANT ALL ON public.public_audio_listeners TO service_role;
+ALTER TABLE public.public_audio_listeners ENABLE ROW LEVEL SECURITY;
+CREATE TABLE public.public_audio_signals (id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY, broadcast_id uuid NOT NULL REFERENCES public.public_audio_broadcasts(id), listener_id uuid NOT NULL REFERENCES public.public_audio_listeners(id), to_host boolean NOT NULL, payload jsonb NOT NULL, created_at timestamptz NOT NULL DEFAULT now());
+GRANT ALL ON public.public_audio_signals TO service_role;
+GRANT USAGE, SELECT ON SEQUENCE public.public_audio_signals_id_seq TO service_role;
+ALTER TABLE public.public_audio_signals ENABLE ROW LEVEL SECURITY;
+CREATE INDEX public_audio_signal_lookup ON public.public_audio_signals(broadcast_id, id);
+CREATE OR REPLACE FUNCTION public.join_public_audio(p_broadcast uuid, p_hash text, p_language text) RETURNS uuid LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $$ DECLARE sid uuid; BEGIN PERFORM id FROM public_audio_broadcasts WHERE id=p_broadcast AND ended_at IS NULL AND expires_at>now() FOR UPDATE; IF NOT FOUND THEN RAISE EXCEPTION 'Broadcast ended'; END IF; IF (SELECT count(*) FROM public_audio_listeners WHERE broadcast_id=p_broadcast AND last_seen>now()-interval '20 seconds')>=5 THEN RAISE EXCEPTION 'Broadcast full'; END IF; INSERT INTO public_audio_listeners(broadcast_id,token_hash,language) VALUES(p_broadcast,p_hash,p_language) RETURNING id INTO sid; RETURN sid; END $$;
+REVOKE ALL ON FUNCTION public.join_public_audio(uuid,text,text) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.join_public_audio(uuid,text,text) TO service_role;
+CREATE OR REPLACE FUNCTION public.reserve_public_audio_phrase(p_broadcast uuid, p_wallet uuid) RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $$ BEGIN UPDATE public_audio_broadcasts SET phrase_count=phrase_count+1,last_phrase_at=now() WHERE id=p_broadcast AND wallet=p_wallet AND ended_at IS NULL AND expires_at>now() AND phrase_count<120 AND (last_phrase_at IS NULL OR last_phrase_at<now()-interval '2 seconds'); RETURN FOUND; END $$;
+REVOKE ALL ON FUNCTION public.reserve_public_audio_phrase(uuid,uuid) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.reserve_public_audio_phrase(uuid,uuid) TO service_role;

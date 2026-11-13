@@ -1,0 +1,3 @@
+ALTER TABLE public.complaints ADD COLUMN IF NOT EXISTS issue_classification text, ADD COLUMN IF NOT EXISTS repair_attempt text, ADD COLUMN IF NOT EXISTS reviewed_at timestamptz, ADD COLUMN IF NOT EXISTS waiver_started_at timestamptz, ADD COLUMN IF NOT EXISTS waiver_claimed_at timestamptz;
+COMMENT ON COLUMN public.complaints.refund_amount_cents IS 'Historical refunds only; current complaint remedy waives future charges instead.';
+COMMENT ON COLUMN public.complaints.issue_classification IS 'Owner-reviewed user_error, system_issue, or undetermined; classification does not authorize a remedy.';

@@ -1,0 +1,2 @@
+- Account history requires owner QR-device sessions with current server generations; only unmigrated legacy accounts may use verified PIN sessions. Fleet QRs request access; purchasers atomically approve seats and metered limits.
+- Wallet "Signed in" requires both the verified server session and this tab's unlocked identity (session-identity.ts); a leftover server cookie alone shows the red Not signed in light.
